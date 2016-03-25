@@ -19,7 +19,7 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.util.Log;
 import com.example.hp.speechify.models.RecipeModel;
 
 import org.json.JSONArray;
@@ -45,9 +45,9 @@ private ListView listView;
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //listView=(ListView)findViewById(R.id.listView);
-        Button button=(Button)findViewById(R.id.butthon);
-        tv=(TextView)findViewById(R.id.textview);
+        listView=(ListView)findViewById(R.id.listview);
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,52 +56,44 @@ private ListView listView;
                         .setAction("Action", null).show();
             }
         });
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               //Toast.makeText(getApplicationContext(),"clicked",Toast.LENGTH_LONG).show();
-                new JSONTask().execute("http://www.speechify.in/internship/android_task.php");
-                Toast.makeText(getApplication(),"after",Toast.LENGTH_LONG).show();
 
-            }
-        });
 
     }
 
-//    private class RecipeAdapter extends ArrayAdapter
-//    {   List<RecipeModel> recipeModelList;
-//        int resource;
-//        private LayoutInflater inflater=null;
-//        public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
-//            super(context, resource, objects);
-//            this.resource = resource;
-//            recipeModelList = objects;
-//            inflater= (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-//
-//        }
-//
-//            @Override
-//            public View getView(int position, View convertView, ViewGroup parent) {
-//                if(convertView==null)
-//                {
-//                    convertView=inflater.inflate(resource,null);
-//                }
-//                 TextView recipe_name=(TextView)findViewById(R.id.recipe_name);
-//                recipe_name.setText(recipeModelList.get(position).getName());
-//                return convertView;
-//            }
-//    }
+    private class RecipeAdapter extends ArrayAdapter
+    {   List<RecipeModel> recipeModelList;
+        int resource;
+        private LayoutInflater inflater=null;
+        public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
+            super(context, resource, objects);
+            this.resource = resource;
+            recipeModelList = objects;
+            inflater= (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if(convertView==null)
+                {
+                    convertView=inflater.inflate(resource,null);
+                }
+                 TextView recipe_name=(TextView)convertView.findViewById(R.id.recipe_name);
+                recipe_name.setText(recipeModelList.get(position).getName());
+                return convertView;
+            }
+    }
 
 
 
-    class JSONTask extends AsyncTask<String,String,String>
+    class JSONTask extends AsyncTask<String,String,List<RecipeModel>>
     {
-        //        Context context;
-//        public JSONTask(Context context){
-//            this.context=context;
-//        }
+               Context context;
+          public JSONTask(Context context){
+          this.context=context;
+         }
         @Override
-        protected String doInBackground(String... params) {
+        protected List<RecipeModel> doInBackground(String... params) {
             BufferedReader reader=null;
             HttpURLConnection connection=null;
             try {
@@ -119,33 +111,37 @@ private ListView listView;
 
                 String finalJSON=buffer.toString();
 
-//                JSONObject parentObject=new JSONObject(finalJSON);
-//                String status=parentObject.getString("status");
-//                Toast.makeText(getApplicationContext(),"status :"+status,Toast.LENGTH_SHORT).show();
-//                JSONArray parentArray = parentObject.getJSONArray("recipe_data");
-//                List<RecipeModel.Ingredient> ingredientList=new ArrayList<>();
-//                List<RecipeModel> recipeModelList=new ArrayList<>();
-//                for(int i=0;i<parentArray.length();i++)
-//                {
-//                    RecipeModel recipeModel=new RecipeModel();
-//                    JSONObject finalObject=parentArray.getJSONObject(i);
-//                    recipeModel.setId(finalObject.getString("id"));
-//                    recipeModel.setName(finalObject.getString("name"));
-//                    JSONArray recipeArray=finalObject.getJSONArray("recipe_data");
-//                    for(int j=0;j<recipeArray.length();j++)
-//                    {
-//                        RecipeModel.Ingredient ingredient=new RecipeModel.Ingredient();
-//                        JSONObject ingredientObject=recipeArray.getJSONObject(j);
-//                        ingredient.setIngredient_id(ingredientObject.getString("ingredient_id"));
-//                        ingredient.setIngredient_name(ingredientObject.getString("ingredient_name"));
-//                        ingredientList.add(ingredient);
-//                    }
-//                    recipeModel.setIngredientList(ingredientList);
-//                    recipeModelList.add(recipeModel);
 
-                //}
+               Log.e("Async","doInBackground");
+               // return finalJSON;
+                JSONObject parentObject=new JSONObject(finalJSON);
+                //String status=parentObject.getString("status");
+                //Toast.makeText(getApplicationContext(),"status :"+status,Toast.LENGTH_SHORT).show();
+                JSONArray parentArray = parentObject.getJSONArray("recipe_data");
 
-                return finalJSON;
+                List<RecipeModel> recipeModelList=new ArrayList<>();
+                for(int i=0;i<parentArray.length();i++)
+                {
+                    RecipeModel recipeModel=new RecipeModel();
+                    JSONObject finalObject=parentArray.getJSONObject(i);
+                    recipeModel.setId(finalObject.getString("id"));
+                    recipeModel.setName(finalObject.getString("name"));
+                    JSONArray ingredientDataArray=finalObject.getJSONArray("ingredient_data");
+                    List<RecipeModel.Ingredient> ingredientList=new ArrayList<>();
+                    for(int j=0;j<ingredientDataArray.length();j++)
+                    {
+                        RecipeModel.Ingredient ingredient=new RecipeModel.Ingredient();
+                        JSONObject ingredientObject=ingredientDataArray.getJSONObject(j);
+                        ingredient.setIngredient_id(ingredientObject.getString("ingredient_id"));
+                        ingredient.setIngredient_name(ingredientObject.getString("ingredient_name"));
+                        ingredientList.add(ingredient);
+                    }
+                    recipeModel.setIngredientList(ingredientList);
+                    recipeModelList.add(recipeModel);
+
+                }
+
+                return recipeModelList;
             }
             catch(MalformedURLException e)
             {
@@ -153,8 +149,11 @@ private ListView listView;
             }
             catch(IOException e)
             {
+                e.printStackTrace();}
+            catch (JSONException e) {
                 e.printStackTrace();
-            } finally {
+
+         } finally {
                 if(connection!=null)
                     connection.disconnect();
 
@@ -170,17 +169,17 @@ private ListView listView;
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(List<RecipeModel> result) {
             super.onPostExecute(result);
             //dialog.dismiss();
             if(result != null) {
-                tv.setText(result);
-                Toast.makeText(getApplicationContext(),"Working",Toast.LENGTH_LONG);
-//                RecipeAdapter adapter=new RecipeAdapter(getApplicationContext(),R.layout.row,result);
-//                listView.setAdapter(adapter);
+               Log.e("Async","onPost");
+                //Toast.makeText(getBaseContext(),"Working",Toast.LENGTH_LONG);
+        RecipeAdapter adapter=new RecipeAdapter(getApplicationContext(),R.layout.row,result);
+                listView.setAdapter(adapter);
 
             } else {
-                Toast.makeText(getApplicationContext(), "Not able to fetch data from server, please check url.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), "Not able to fetch data from server, please check url.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -202,8 +201,8 @@ private ListView listView;
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
-            //new JSONTask().execute("http://www.speechify.in/internship/android_task.php");
-
+            new JSONTask(this).execute("http://www.speechify.in/internship/android_task.php");
+            //Toast.makeText(getApplicationContext(),"json",Toast.LENGTH_LONG).show();
             return true;
         }
 
