@@ -1,14 +1,16 @@
 package com.example.hp.speechify.models;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by hp on 24-03-2016.
  */
-public class RecipeModel {
+public class RecipeModel implements Serializable {
     private String id;
     private String name;
-    private List<Ingredient> ingredientList;
+    private ArrayList<Ingredient> ingredientList;
 
     public String getId() {
         return id;
@@ -26,15 +28,15 @@ public class RecipeModel {
         this.name = name;
     }
 
-    public List<Ingredient> getIngredientList() {
+    public ArrayList<Ingredient> getIngredientList() {
         return ingredientList;
     }
 
-    public void setIngredientList(List<Ingredient> ingredientList) {
+    public void setIngredientList(ArrayList<Ingredient> ingredientList) {
         this.ingredientList = ingredientList;
     }
 
-    public static class Ingredient
+    public static class Ingredient implements Serializable
     {
         private String ingredient_id;
         private String ingredient_name;

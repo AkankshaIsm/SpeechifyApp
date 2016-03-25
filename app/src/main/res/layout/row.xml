@@ -9,5 +9,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Recipe_Name"
+        android:layout_margin="3dp"
+        android:textColor="@color/colorAccent"
         android:id="@+id/recipe_name" />
 </LinearLayout>

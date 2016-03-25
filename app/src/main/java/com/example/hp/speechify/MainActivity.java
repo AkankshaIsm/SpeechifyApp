@@ -1,8 +1,10 @@
 package com.example.hp.speechify;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -30,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +42,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 private ListView listView;
+    public static final String key="MyKey";
     private TextView tv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +91,7 @@ private ListView listView;
 
 
 
+
     class JSONTask extends AsyncTask<String,String,List<RecipeModel>>
     {
                Context context;
@@ -119,7 +125,7 @@ private ListView listView;
                 //Toast.makeText(getApplicationContext(),"status :"+status,Toast.LENGTH_SHORT).show();
                 JSONArray parentArray = parentObject.getJSONArray("recipe_data");
 
-                List<RecipeModel> recipeModelList=new ArrayList<>();
+                ArrayList<RecipeModel> recipeModelList=new ArrayList<>();
                 for(int i=0;i<parentArray.length();i++)
                 {
                     RecipeModel recipeModel=new RecipeModel();
@@ -127,7 +133,7 @@ private ListView listView;
                     recipeModel.setId(finalObject.getString("id"));
                     recipeModel.setName(finalObject.getString("name"));
                     JSONArray ingredientDataArray=finalObject.getJSONArray("ingredient_data");
-                    List<RecipeModel.Ingredient> ingredientList=new ArrayList<>();
+                    ArrayList<RecipeModel.Ingredient> ingredientList=new ArrayList<>();
                     for(int j=0;j<ingredientDataArray.length();j++)
                     {
                         RecipeModel.Ingredient ingredient=new RecipeModel.Ingredient();
@@ -169,7 +175,7 @@ private ListView listView;
         }
 
         @Override
-        protected void onPostExecute(List<RecipeModel> result) {
+        protected void onPostExecute(final List<RecipeModel> result) {
             super.onPostExecute(result);
             //dialog.dismiss();
             if(result != null) {
@@ -177,6 +183,19 @@ private ListView listView;
                 //Toast.makeText(getBaseContext(),"Working",Toast.LENGTH_LONG);
         RecipeAdapter adapter=new RecipeAdapter(getApplicationContext(),R.layout.row,result);
                 listView.setAdapter(adapter);
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        if(result!=null)
+                        { List<RecipeModel> recipeModelList=result;
+                        ArrayList<RecipeModel.Ingredient> ingredientList=recipeModelList.get(position).getIngredientList();
+                     Intent intent=new Intent(MainActivity.this,SecondActivity.class);
+                        intent.putExtra("Mykey",ingredientList);
+
+                        Log.e("Async","on click");
+                        startActivity(intent);}
+                    }
+                });
 
             } else {
                 Toast.makeText(getBaseContext(), "Not able to fetch data from server, please check url.", Toast.LENGTH_SHORT).show();
